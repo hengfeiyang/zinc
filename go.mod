@@ -16,6 +16,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/minio/minio-go/v7 v7.0.21
 	github.com/prometheus/client_golang v1.12.0 // indirect
+	github.com/pyroscope-io/client v0.2.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/zerolog v1.26.1
 	github.com/segmentio/backo-go v1.0.0 // indirect
