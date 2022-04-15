@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/dgraph-io/badger/v3/options"
+
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
 
@@ -51,7 +52,7 @@ func (t *Storage) GetIndex(indexName string) (*StorageIndex, error) {
 
 	dataPath := zutils.GetEnv("ZINC_DATA_PATH", "./data")
 	opt := badger.DefaultOptions(path.Join(dataPath, "storage", indexName))
-	opt.NumGoroutines = runtime.NumGoroutine()
+	opt.NumGoroutines = runtime.NumGoroutine() * 8
 	opt.Compression = options.ZSTD
 	opt.BlockSize = 1024 * 128
 	opt.MetricsEnabled = false
