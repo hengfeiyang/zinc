@@ -48,10 +48,10 @@ func (index *Index) SearchV2(query *meta.ZincQuery) (*meta.SearchResponse, error
 		return nil, err
 	}
 
-	return searchV2(dmi, query, index.CachedMappings)
+	return searchV2(index.Name, dmi, query, index.CachedMappings)
 }
 
-func searchV2(dmi search.DocumentMatchIterator, query *meta.ZincQuery, mappings *meta.Mappings) (*meta.SearchResponse, error) {
+func searchV2(indexName string, dmi search.DocumentMatchIterator, query *meta.ZincQuery, mappings *meta.Mappings) (*meta.SearchResponse, error) {
 	resp := &meta.SearchResponse{
 		Hits: meta.Hits{Hits: []meta.Hit{}},
 	}
@@ -70,7 +70,6 @@ func searchV2(dmi search.DocumentMatchIterator, query *meta.ZincQuery, mappings 
 	next, err := dmi.Next()
 	for err == nil && next != nil {
 		var id string
-		var indexName string
 		var timestamp time.Time
 		var sourceData map[string]interface{}
 		var fieldsData map[string]interface{}
@@ -82,15 +81,15 @@ func searchV2(dmi search.DocumentMatchIterator, query *meta.ZincQuery, mappings 
 			switch field {
 			case "_id":
 				id = string(value)
-			case "_index":
-				indexName = string(value)
+			// case "_index":
+			// 	indexName = string(value)
 			case "@timestamp":
 				timestamp, _ = bluge.DecodeDateTime(value)
-			case "_source":
-				sourceData = source.Response(query.Source.(*meta.Source), value)
-				if query.Fields != nil {
-					fieldsData = fields.Response(query.Fields.([]*meta.Field), value, mappings)
-				}
+			// case "_source":
+			// 	sourceData = source.Response(query.Source.(*meta.Source), value)
+			// 	if query.Fields != nil {
+			// 		fieldsData = fields.Response(query.Fields.([]*meta.Field), value, mappings)
+			// 	}
 			default:
 				// highlight
 				if query.Highlight != nil && query.Highlight.Fields != nil {
@@ -112,6 +111,19 @@ func searchV2(dmi search.DocumentMatchIterator, query *meta.ZincQuery, mappings 
 		if err != nil {
 			log.Printf("core.SearchV2: error accessing stored fields: %v", err)
 			continue
+		}
+
+		// read _source froms storage
+		if indexName != "" {
+			sourceValue, err := ZINC_INDEX_LIST[indexName].GetSourceData(id)
+			if err != nil {
+				log.Printf("core.SearchV2: error read source from storage: %v", err)
+			} else {
+				sourceData = source.Response(query.Source.(*meta.Source), sourceValue)
+				if query.Fields != nil {
+					fieldsData = fields.Response(query.Fields.([]*meta.Field), sourceValue, mappings)
+				}
+			}
 		}
 
 		hit := meta.Hit{

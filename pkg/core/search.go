@@ -99,15 +99,22 @@ func (index *Index) Search(iQuery *v1.ZincQuery) (*v1.SearchResponse, error) {
 				id = string(value)
 			case "@timestamp":
 				timestamp, _ = bluge.DecodeDateTime(value)
-			case "_source":
-				result = uquery.HandleSource(sourceCtl, value)
+			// case "_source":
+			// 	result = uquery.HandleSource(sourceCtl, value)
 			default:
 			}
-
 			return true
 		})
 		if err != nil {
 			log.Printf("error accessing stored fields: %v", err)
+		}
+
+		// read _source froms storage
+		sourceValue, err := index.GetSourceData(id)
+		if err != nil {
+			log.Printf("error read source from storage: %v", err)
+		} else {
+			result = uquery.HandleSource(sourceCtl, sourceValue)
 		}
 
 		hit := v1.Hit{

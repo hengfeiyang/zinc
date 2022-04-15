@@ -58,5 +58,5 @@ func MultiSearchV2(indexName string, query *meta.ZincQuery) (*meta.SearchRespons
 		return nil, err
 	}
 
-	return searchV2(dmi, query, mappings)
+	return searchV2("", dmi, query, mappings)
 }

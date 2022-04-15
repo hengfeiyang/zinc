@@ -130,6 +130,10 @@ func LoadZincIndexesFromDisk() (map[string]*Index, error) {
 			continue
 		}
 
+		if iName == "storage" {
+			continue
+		}
+
 		tempIndex, err := NewIndex(iName, "disk", NotCompatibleNewIndexMeta, nil)
 		if err != nil {
 			log.Print("Error loading index: ", iName, " : ", err.Error()) // inform and move in to next index

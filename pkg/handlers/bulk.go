@@ -10,11 +10,11 @@ import (
 	"github.com/blugelabs/bluge"
 	"github.com/blugelabs/bluge/index"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
 	"github.com/prabhatsharma/zinc/pkg/startup"
+	"github.com/prabhatsharma/zinc/pkg/storage"
 )
 
 func BulkHandler(c *gin.Context) {
@@ -79,15 +79,22 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 
 			bulkRes.Count++
 
+			indexName := lastLineMetaData["_index"].(string)
 			if val, ok := lastLineMetaData["_id"]; ok && val != nil {
 				docID = val.(string)
 			}
 			if docID == "" {
-				docID = uuid.New().String()
+				storage, err := storage.Cli.GetIndex(indexName)
+				if err != nil {
+					return bulkRes, err
+				}
+				docID, err = storage.GenerateID()
+				if err != nil {
+					return bulkRes, err
+				}
 				mintedID = true
 			}
 
-			indexName := lastLineMetaData["_index"].(string)
 			operation := lastLineMetaData["operation"].(string)
 			switch operation {
 			case "index":
@@ -121,7 +128,7 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 				core.StoreIndex(newIndex)
 			}
 
-			bdoc, err := core.ZINC_INDEX_LIST[indexName].BuildBlugeDocumentFromJSON(docID, &doc)
+			bdoc, err := core.ZINC_INDEX_LIST[indexName].BuildBlugeDocumentFromJSON(docID, doc)
 			if err != nil {
 				return bulkRes, err
 			}
@@ -134,6 +141,11 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 				batch[indexName].Update(bdoc.ID(), bdoc)
 			} else {
 				batch[indexName].Insert(bdoc)
+			}
+
+			// storage source field
+			if err := core.ZINC_INDEX_LIST[indexName].SetSourceData(docID, doc); err != nil {
+				return bulkRes, err
 			}
 
 			// refresh index stats

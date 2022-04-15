@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
+	"github.com/prabhatsharma/zinc/pkg/storage"
 )
 
 func UpdateDocument(c *gin.Context) {
@@ -29,7 +29,16 @@ func UpdateDocument(c *gin.Context) {
 		docID = queryID
 	}
 	if docID == "" {
-		docID = uuid.New().String() // Generate a new ID if ID was not provided
+		storage, err := storage.Cli.GetIndex(indexName)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		docID, err = storage.GenerateID()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 		mintedID = true
 	}
 
@@ -46,7 +55,7 @@ func UpdateDocument(c *gin.Context) {
 		core.StoreIndex(index)
 	}
 
-	err = index.UpdateDocument(docID, &doc, mintedID)
+	err = index.UpdateDocument(docID, doc, mintedID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
