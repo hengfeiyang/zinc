@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/argon2"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
+	"github.com/prabhatsharma/zinc/pkg/ider"
 )
 
 func CreateUser(userID, name, plaintextPassword, role string) (*ZincUser, error) {
@@ -85,7 +85,7 @@ func GeneratePassword(password, salt string) string {
 }
 
 func GenerateSalt() string {
-	return uuid.New().String()
+	return ider.Generate()
 }
 
 type ZincUser struct {

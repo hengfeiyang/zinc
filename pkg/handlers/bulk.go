@@ -11,10 +11,10 @@ import (
 	"github.com/blugelabs/bluge"
 	"github.com/blugelabs/bluge/index"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
+	"github.com/prabhatsharma/zinc/pkg/ider"
 	"github.com/prabhatsharma/zinc/pkg/startup"
 )
 
@@ -83,7 +83,7 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 				docID = val.(string)
 			}
 			if docID == "" {
-				docID = uuid.New().String()
+				docID = ider.Generate()
 				mintedID = true
 			}
 

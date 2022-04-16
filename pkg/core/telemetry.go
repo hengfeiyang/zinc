@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge"
-	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"gopkg.in/segmentio/analytics-go.v3"
 
+	"github.com/prabhatsharma/zinc/pkg/ider"
 	v1 "github.com/prabhatsharma/zinc/pkg/meta/v1"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
@@ -40,7 +40,7 @@ func newTelemetry() *telemetry {
 }
 
 func (t *telemetry) createInstanceID() string {
-	instanceID := uuid.New().String()
+	instanceID := ider.Generate()
 	doc := bluge.NewDocument("instance_id")
 	doc.AddField(bluge.NewKeywordField("value", instanceID).StoreValue())
 	ZINC_SYSTEM_INDEX_LIST["_metadata"].Writer.Update(doc.ID(), doc)

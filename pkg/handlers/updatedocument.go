@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
+	"github.com/prabhatsharma/zinc/pkg/ider"
 )
 
 func UpdateDocument(c *gin.Context) {
@@ -35,7 +35,7 @@ func UpdateDocument(c *gin.Context) {
 		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		// 	return
 		// }
-		docID = uuid.New().String()
+		docID = ider.Generate()
 		mintedID = true
 	}
 

@@ -2,10 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"strconv"
 	"sync"
-
-	"github.com/dgraph-io/badger/v3"
 )
 
 const (
@@ -29,9 +26,8 @@ type StorageBulker interface {
 }
 
 type Storage struct {
-	idGenerator *badger.Sequence
-	db          map[string]Storager
-	lock        sync.RWMutex
+	db   map[string]Storager
+	lock sync.RWMutex
 }
 
 var Cli *Storage
@@ -39,9 +35,6 @@ var Cli *Storage
 func init() {
 	Cli = new(Storage)
 	Cli.db = make(map[string]Storager, 32)
-
-	// idb, _ := openBadgerDB("_id")
-	// Cli.idGenerator, _ = idb.GetSequence([]byte("id"), 1000)
 }
 
 func (t *Storage) GetIndex(indexName string, dbEngine string) (Storager, error) {
@@ -81,16 +74,7 @@ func (t *Storage) DeleteIndex(indexName string) {
 	}
 }
 
-func (t *Storage) GenerateID() (string, error) {
-	id, err := t.idGenerator.Next()
-	if err != nil {
-		return "", fmt.Errorf("storage.GenerateID: err %v", err.Error())
-	}
-	return strconv.FormatUint(id, 10), nil
-}
-
 func (t *Storage) Close() {
-	_ = t.idGenerator.Release()
 	for _, index := range t.db {
 		index.Close()
 	}

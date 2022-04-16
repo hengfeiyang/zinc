@@ -9,12 +9,13 @@ require (
 	github.com/blugelabs/bluge_segment_api v0.2.0
 	github.com/blugelabs/query_string v0.3.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cockroachdb/pebble v0.0.0-20220414212822-4e77c07790d3
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-ego/gse v0.70.0
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/minio/minio-go/v7 v7.0.21
 	github.com/prometheus/client_golang v1.12.0 // indirect
