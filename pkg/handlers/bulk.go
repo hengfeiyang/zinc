@@ -11,11 +11,11 @@ import (
 	"github.com/blugelabs/bluge"
 	"github.com/blugelabs/bluge/index"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
 	"github.com/prabhatsharma/zinc/pkg/startup"
-	"github.com/prabhatsharma/zinc/pkg/storage"
 )
 
 func BulkHandler(c *gin.Context) {
@@ -42,13 +42,20 @@ func ESBulkHandler(c *gin.Context) {
 }
 
 func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error) {
-	// force set batchSize
-	batchSize := startup.LoadBatchSize()
 	bulkRes := &BulkResponse{Items: []map[string]*BulkResponseItem{}}
 
 	// Prepare to read the entire raw text of the body
-	scanner := bufio.NewReader(body)
+	scanner := bufio.NewScanner(body)
 	defer body.Close()
+
+	// force set batchSize
+	batchSize := startup.LoadBatchSize()
+
+	// Set 1 MB max per line. docs at - https://pkg.go.dev/bufio#pkg-constants
+	// This is the max size of a line in a file that we will process
+	const maxCapacityPerLine = 1024 * 1024
+	buf := make([]byte, maxCapacityPerLine)
+	scanner.Buffer(buf, maxCapacityPerLine)
 
 	nextLineIsData := false
 	lastLineMetaData := make(map[string]interface{})
@@ -56,18 +63,10 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 	batch := make(map[string]*index.Batch)
 	var indexesInThisBatch []string
 	var documentsInBatch int
-
-	for { // Read each line
-		line, _, err := scanner.ReadLine()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return bulkRes, err
-		}
-
-		var doc map[string]interface{}
-		if err = json.Unmarshal(line, &doc); err != nil {
+	var doc map[string]interface{}
+	var err error
+	for scanner.Scan() { // Read each line
+		if err = json.Unmarshal(scanner.Bytes(), &doc); err != nil {
 			log.Error().Msgf("bulk.json.Unmarshal: err %v", err)
 			continue
 		}
@@ -80,17 +79,15 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 			mintedID := false
 
 			var docID = ""
-			indexName := lastLineMetaData["_index"].(string)
 			if val, ok := lastLineMetaData["_id"]; ok && val != nil {
 				docID = val.(string)
 			}
 			if docID == "" {
-				if docID, err = storage.Cli.GenerateID(); err != nil {
-					return bulkRes, err
-				}
+				docID = uuid.New().String()
 				mintedID = true
 			}
 
+			indexName := lastLineMetaData["_index"].(string)
 			operation := lastLineMetaData["operation"].(string)
 			switch operation {
 			case "index":
@@ -205,6 +202,10 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 				}
 			}
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return bulkRes, err
 	}
 
 	for _, indexN := range indexesInThisBatch {

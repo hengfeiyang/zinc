@@ -11,8 +11,6 @@ import (
 
 	"github.com/prabhatsharma/zinc/pkg/directory"
 	meta "github.com/prabhatsharma/zinc/pkg/meta/v2"
-	"github.com/prabhatsharma/zinc/pkg/startup"
-	"github.com/prabhatsharma/zinc/pkg/storage"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
 
@@ -72,11 +70,11 @@ func NewIndex(name, storageType string, useNewIndexMeta int, defaultSearchAnalyz
 	}
 
 	// get source storage handler
-	store, err := storage.Cli.GetIndex(name, startup.LoadSourceStorageEngine())
-	if err != nil {
-		return nil, err
-	}
-	index.SourceStorager = store
+	// store, err := storage.Cli.GetIndex(name, startup.LoadSourceStorageEngine())
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// index.SourceStorager = store
 
 	return index, nil
 }

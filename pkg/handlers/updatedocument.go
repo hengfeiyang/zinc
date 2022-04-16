@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
-	"github.com/prabhatsharma/zinc/pkg/storage"
 )
 
 func UpdateDocument(c *gin.Context) {
@@ -30,11 +30,12 @@ func UpdateDocument(c *gin.Context) {
 		docID = queryID
 	}
 	if docID == "" {
-		docID, err = storage.Cli.GenerateID()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+		// docID, err = storage.Cli.GenerateID()
+		// if err != nil {
+		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// 	return
+		// }
+		docID = uuid.New().String()
 		mintedID = true
 	}
 

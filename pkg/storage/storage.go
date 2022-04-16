@@ -40,8 +40,8 @@ func init() {
 	Cli = new(Storage)
 	Cli.db = make(map[string]Storager, 32)
 
-	idb, _ := openBadgerDB("_id")
-	Cli.idGenerator, _ = idb.GetSequence([]byte("id"), 1000)
+	// idb, _ := openBadgerDB("_id")
+	// Cli.idGenerator, _ = idb.GetSequence([]byte("id"), 1000)
 }
 
 func (t *Storage) GetIndex(indexName string, dbEngine string) (Storager, error) {
