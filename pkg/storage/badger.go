@@ -32,6 +32,7 @@ func openBadgerDB(indexName string) (*badger.DB, error) {
 	dataPath := zutils.GetEnv("ZINC_DATA_PATH", "./data")
 	opt := badger.DefaultOptions(path.Join(dataPath, "storage", indexName))
 	opt.NumGoroutines = runtime.NumGoroutine() * 8
+	opt.MemTableSize = 32 << 20
 	opt.Compression = options.ZSTD
 	opt.ZSTDCompressionLevel = 3
 	opt.BlockSize = 1024 * 128

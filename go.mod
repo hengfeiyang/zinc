@@ -15,6 +15,7 @@ require (
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-ego/gse v0.70.0
+	github.com/goccy/go-json v0.9.4
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/minio/minio-go/v7 v7.0.21
@@ -24,6 +25,7 @@ require (
 	github.com/segmentio/backo-go v1.0.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/smartystreets/goconvey v1.7.2
+	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
