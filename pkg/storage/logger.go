@@ -14,7 +14,11 @@ func init() {
 }
 
 func (t *logger) Errorf(format string, v ...interface{}) {
-	log.Error().Str("module", "badger").Msgf(format, v)
+	log.Error().Str("zinc_module", "storage").Msgf(format, v)
+}
+
+func (t *logger) Fatalf(format string, v ...interface{}) {
+	log.Fatal().Str("zinc_module", "storage").Msgf(format, v)
 }
 
 func (t *logger) Warningf(format string, v ...interface{}) {}
