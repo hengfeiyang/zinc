@@ -68,6 +68,9 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 	var doc map[string]interface{}
 	var err error
 	for scanner.Scan() { // Read each line
+		for k := range doc {
+			delete(doc, k)
+		}
 		if err = json.Unmarshal(scanner.Bytes(), &doc); err != nil {
 			log.Error().Msgf("bulk.json.Unmarshal: err %s", err.Error())
 			continue
@@ -231,7 +234,6 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 	}
 
 	return bulkRes, nil
-
 }
 
 // DoesExistInThisRequest takes a slice and looks for an element in it. If found it will
