@@ -199,9 +199,11 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 					if DoesExistInThisRequest(indexesInThisBatch, indexName) == -1 {
 						indexesInThisBatch = append(indexesInThisBatch, indexName)
 						batch[indexName] = index.NewBatch()
+						storageBulk[indexName] = core.ZINC_INDEX_LIST[indexName].SourceStorager.Bulk(true)
 					}
 					batch[indexName].Delete(bdoc.ID())
 					core.ZINC_INDEX_LIST[indexName].ReduceDocsCount(1)
+					storageBulk[indexName].Delete(lastLineMetaData["_id"].(string))
 
 					bulkRes.Count++
 					bulkRes.Items = append(bulkRes.Items, map[string]*BulkResponseItem{
