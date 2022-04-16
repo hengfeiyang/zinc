@@ -5,11 +5,17 @@ import (
 	"path"
 
 	"github.com/cockroachdb/pebble"
+
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
 
 type pebbleStorage struct {
 	db *pebble.DB
+}
+
+type pebbleStorageBulk struct {
+	index *pebbleStorage
+	txn   *pebble.Batch
 }
 
 func NewPebble(indexName string) (Storager, error) {
@@ -40,7 +46,9 @@ func (t *pebbleStorage) Get(key string) ([]byte, error) {
 	}
 	valCopy := make([]byte, len(item))
 	copy(valCopy, item)
-	closer.Close()
+	if err := closer.Close(); err != nil {
+		return nil, fmt.Errorf("storage.pebble.Get: key[%s] err %v", key, err.Error())
+	}
 	return valCopy, nil
 }
 
@@ -48,7 +56,7 @@ func (t *pebbleStorage) Gets(keys []string) (map[string][]byte, error) {
 	result := make(map[string][]byte, len(keys))
 	for _, key := range keys {
 		if val, err := t.Get(key); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("storage.pebble.Gets: key[%s] err %v", key, err.Error())
 		} else {
 			result[key] = val
 		}
@@ -64,9 +72,31 @@ func (t *pebbleStorage) Delete(key string) error {
 }
 
 func (t *pebbleStorage) Bulk(update bool) StorageBulker {
-	return nil
+	return &pebbleStorageBulk{index: t, txn: t.db.NewBatch()}
+
 }
 
 func (t *pebbleStorage) Close() {
 	t.db.Close()
+}
+
+func (t *pebbleStorageBulk) Set(key string, value []byte) error {
+	if err := t.txn.Set([]byte(key), value, pebble.NoSync); err != nil {
+		return fmt.Errorf("storage.pebble.bulk.Set: key[%s] err %v", key, err.Error())
+	}
+	return nil
+}
+
+func (t *pebbleStorageBulk) Delete(key string) error {
+	if err := t.txn.Delete([]byte(key), pebble.NoSync); err != nil {
+		return fmt.Errorf("storage.pebble.bulk.Delete: key[%s] err %v", key, err.Error())
+	}
+	return nil
+}
+
+func (t *pebbleStorageBulk) Commit() error {
+	if err := t.txn.Commit(pebble.Sync); err != nil {
+		return fmt.Errorf("storage.pebble.bulk.Commit: err %v", err.Error())
+	}
+	return nil
 }

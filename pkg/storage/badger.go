@@ -124,7 +124,10 @@ func (t *badgerStorageBulk) Set(key string, value []byte) error {
 }
 
 func (t *badgerStorageBulk) Delete(key string) error {
-	return t.txn.Delete([]byte(key))
+	if err := t.txn.Delete([]byte(key)); err != nil {
+		return fmt.Errorf("storage.badger.bulk.Delete: key[%s] err %v", key, err.Error())
+	}
+	return nil
 }
 
 func (t *badgerStorageBulk) Commit() error {
