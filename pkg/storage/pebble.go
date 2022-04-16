@@ -30,7 +30,7 @@ func openPebbleDB(indexName string) (*pebble.DB, error) {
 	dataPath := zutils.GetEnv("ZINC_DATA_PATH", "./data")
 	opt := &pebble.Options{}
 	opt.Logger = Logger
-	return pebble.Open(path.Join(dataPath, "storage", indexName), opt)
+	return pebble.Open(path.Join(dataPath, "_storage", indexName), opt)
 }
 
 func (t *pebbleStorage) Set(key string, value []byte) error {

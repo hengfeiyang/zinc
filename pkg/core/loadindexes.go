@@ -139,8 +139,7 @@ func LoadZincIndexesFromDisk() (map[string]*Index, error) {
 		if iNameIsSystemIndex {
 			continue
 		}
-
-		if iName == "storage" {
+		if iName == "_storage" {
 			continue
 		}
 
