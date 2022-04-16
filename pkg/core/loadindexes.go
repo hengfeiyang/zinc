@@ -63,6 +63,8 @@ func LoadZincIndexesFromMeta() (map[string]*Index, error) {
 				index.IndexType = string(value)
 			case "storage_type":
 				index.StorageType = string(value)
+			case "source_storage_type":
+				index.SourceStorageType = string(value)
 			case "settings":
 				json.Unmarshal(value, &index.Settings)
 			case "mappings":
@@ -96,11 +98,11 @@ func LoadZincIndexesFromMeta() (map[string]*Index, error) {
 		}
 
 		// get source storage handler
-		sdb, err := storage.Cli.GetIndex(index.Name, storage.DBEngineBadger)
+		store, err := storage.Cli.GetIndex(index.Name, index.SourceStorageType)
 		if err != nil {
 			log.Error().Msgf("Loading user   index... [%s:%s] source storage error: %v", index.Name, index.StorageType, err)
 		}
-		index.SourceStorage = sdb
+		index.SourceStorager = store
 
 		// load index docs count
 		index.DocsCount, _ = index.LoadDocsCount()

@@ -3,6 +3,7 @@ package handlers
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -41,20 +42,13 @@ func ESBulkHandler(c *gin.Context) {
 }
 
 func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error) {
+	// force set batchSize
+	batchSize := startup.LoadBatchSize()
 	bulkRes := &BulkResponse{Items: []map[string]*BulkResponseItem{}}
 
 	// Prepare to read the entire raw text of the body
-	scanner := bufio.NewScanner(body)
+	scanner := bufio.NewReader(body)
 	defer body.Close()
-
-	// force set batchSize
-	batchSize := startup.LoadBatchSize()
-
-	// Set 1 MB max per line. docs at - https://pkg.go.dev/bufio#pkg-constants
-	// This is the max size of a line in a file that we will process
-	const maxCapacityPerLine = 1024 * 1024
-	buf := make([]byte, maxCapacityPerLine)
-	scanner.Buffer(buf, maxCapacityPerLine)
 
 	nextLineIsData := false
 	lastLineMetaData := make(map[string]interface{})
@@ -63,28 +57,37 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 	var indexesInThisBatch []string
 	var documentsInBatch int
 
-	for scanner.Scan() { // Read each line
-		var doc map[string]interface{}
-		err := json.Unmarshal(scanner.Bytes(), &doc) // Read each line as JSON and store it in doc
+	for { // Read each line
+		line, _, err := scanner.ReadLine()
 		if err != nil {
-			log.Print(err)
+			if err == io.EOF {
+				break
+			}
+			return bulkRes, err
+		}
+
+		var doc map[string]interface{}
+		if err = json.Unmarshal(line, &doc); err != nil {
+			log.Error().Msgf("bulk.json.Unmarshal: err %v", err)
+			continue
 		}
 
 		// This will process the data line in the request. Each data line is preceded by a metadata line.
 		// Docs at https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
 		if nextLineIsData {
+			bulkRes.Count++
 			nextLineIsData = false
-			var docID = ""
 			mintedID := false
 
-			bulkRes.Count++
-
+			var docID = ""
 			indexName := lastLineMetaData["_index"].(string)
 			if val, ok := lastLineMetaData["_id"]; ok && val != nil {
 				docID = val.(string)
 			}
 			if docID == "" {
-				docID, err = storage.Cli.GenerateID()
+				if docID, err = storage.Cli.GenerateID(); err != nil {
+					return bulkRes, err
+				}
 				mintedID = true
 			}
 
@@ -118,7 +121,9 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 					return bulkRes, err
 				}
 				// store index
-				core.StoreIndex(newIndex)
+				if err := core.StoreIndex(newIndex); err != nil {
+					return bulkRes, err
+				}
 			}
 
 			bdoc, err := core.ZINC_INDEX_LIST[indexName].BuildBlugeDocumentFromJSON(docID, doc)
@@ -137,9 +142,9 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 			}
 
 			// storage source field
-			if err := core.ZINC_INDEX_LIST[indexName].SetSourceData(docID, doc); err != nil {
-				return bulkRes, err
-			}
+			// if err := core.ZINC_INDEX_LIST[indexName].SetSourceData(docID, doc); err != nil {
+			// 	return bulkRes, err
+			// }
 
 			// refresh index stats
 			core.ZINC_INDEX_LIST[indexName].GainDocsCount(1)
@@ -149,7 +154,7 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 					// Persist the batch to the index
 					err := core.ZINC_INDEX_LIST[indexN].Writer.Batch(batch[indexN])
 					if err != nil {
-						log.Printf("Error updating batch: %v", err)
+						log.Error().Msgf("Error updating batch: %v", err)
 						return bulkRes, err
 					}
 					batch[indexN].Reset()
@@ -166,8 +171,7 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 					lastLineMetaData["operation"] = k
 
 					if _, ok := v.(map[string]interface{}); !ok {
-						// return errors.New("bulk index data format error")
-						continue
+						return nil, errors.New("bulk index data format error")
 					}
 
 					if v.(map[string]interface{})["_index"] != "" { // if index is specified in metadata then it overtakes the index in the query path
@@ -201,10 +205,6 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 				}
 			}
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return bulkRes, err
 	}
 
 	for _, indexN := range indexesInThisBatch {

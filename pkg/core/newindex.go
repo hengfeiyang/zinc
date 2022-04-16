@@ -11,13 +11,13 @@ import (
 
 	"github.com/prabhatsharma/zinc/pkg/directory"
 	meta "github.com/prabhatsharma/zinc/pkg/meta/v2"
+	"github.com/prabhatsharma/zinc/pkg/startup"
 	"github.com/prabhatsharma/zinc/pkg/storage"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
 
 // NewIndex creates an instance of a physical zinc index that can be used to store and retrieve data.
-func NewIndex(name string, storageType string, useNewIndexMeta int,
-	defaultSearchAnalyzer *analysis.Analyzer) (*Index, error) {
+func NewIndex(name, storageType string, useNewIndexMeta int, defaultSearchAnalyzer *analysis.Analyzer) (*Index, error) {
 	if name == "" {
 		return nil, fmt.Errorf("core.NewIndex: index name cannot be empty")
 	}
@@ -72,11 +72,11 @@ func NewIndex(name string, storageType string, useNewIndexMeta int,
 	}
 
 	// get source storage handler
-	sdb, err := storage.Cli.GetIndex(name, storage.DBEngineBadger)
+	store, err := storage.Cli.GetIndex(name, startup.LoadSourceStorageEngine())
 	if err != nil {
 		return nil, err
 	}
-	index.SourceStorage = sdb
+	index.SourceStorager = store
 
 	return index, nil
 }
@@ -120,6 +120,7 @@ func StoreIndex(index *Index) error {
 	bdoc.AddField(bluge.NewKeywordField("name", index.Name).StoreValue().Sortable())
 	bdoc.AddField(bluge.NewKeywordField("index_type", index.IndexType).StoreValue().Sortable())
 	bdoc.AddField(bluge.NewKeywordField("storage_type", index.StorageType).StoreValue().Sortable())
+	bdoc.AddField(bluge.NewKeywordField("source_storage_type", index.SourceStorageType).StoreValue().Sortable())
 
 	settingByteVal, _ := json.Marshal(&index.Settings)
 	bdoc.AddField(bluge.NewStoredOnlyField("settings", settingByteVal))

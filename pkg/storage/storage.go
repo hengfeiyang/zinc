@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	DBEngineBadger = iota
-	DBEnginePebble
+	DBEngineBadger = "badger"
+	DBEnginePebble = "pebble"
 )
 
 type Storager interface {
@@ -44,7 +44,7 @@ func init() {
 	Cli.idGenerator, _ = idb.GetSequence([]byte("id"), 1000)
 }
 
-func (t *Storage) GetIndex(indexName string, dbEngine int) (Storager, error) {
+func (t *Storage) GetIndex(indexName string, dbEngine string) (Storager, error) {
 	t.lock.Lock()
 	index, ok := t.db[indexName]
 	t.lock.Unlock()

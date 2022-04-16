@@ -32,13 +32,13 @@ func (index *Index) SetSourceData(docID string, sourceDoc map[string]interface{}
 	if err != nil {
 		return err
 	}
-	return index.SourceStorage.Set(docID, jdoc)
+	return index.SourceStorager.Set(docID, jdoc)
 }
 
 func (index *Index) GetSourceData(docID string) ([]byte, error) {
-	return index.SourceStorage.Get(docID)
+	return index.SourceStorager.Get(docID)
 }
 
 func (index *Index) DeleteSourceData(docID string) error {
-	return index.SourceStorage.Delete(docID)
+	return index.SourceStorager.Delete(docID)
 }
