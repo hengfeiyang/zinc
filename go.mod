@@ -9,6 +9,7 @@ require (
 	github.com/blugelabs/bluge_segment_api v0.2.0
 	github.com/blugelabs/query_string v0.3.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/cockroachdb/pebble v0.0.0-20220414212822-4e77c07790d3
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4

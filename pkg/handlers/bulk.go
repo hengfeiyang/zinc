@@ -84,14 +84,7 @@ func BulkHandlerWorker(target string, body io.ReadCloser) (*BulkResponse, error)
 				docID = val.(string)
 			}
 			if docID == "" {
-				storage, err := storage.Cli.GetIndex(indexName)
-				if err != nil {
-					return bulkRes, err
-				}
-				docID, err = storage.GenerateID()
-				if err != nil {
-					return bulkRes, err
-				}
+				docID, err = storage.Cli.GenerateID()
 				mintedID = true
 			}
 

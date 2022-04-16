@@ -11,12 +11,12 @@ import (
 
 	"github.com/prabhatsharma/zinc/pkg/directory"
 	meta "github.com/prabhatsharma/zinc/pkg/meta/v2"
+	"github.com/prabhatsharma/zinc/pkg/storage"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
 
 // NewIndex creates an instance of a physical zinc index that can be used to store and retrieve data.
-func NewIndex(
-	name string, storageType string, useNewIndexMeta int,
+func NewIndex(name string, storageType string, useNewIndexMeta int,
 	defaultSearchAnalyzer *analysis.Analyzer) (*Index, error) {
 	if name == "" {
 		return nil, fmt.Errorf("core.NewIndex: index name cannot be empty")
@@ -70,6 +70,13 @@ func NewIndex(
 			index.CachedMappings = mappings
 		}
 	}
+
+	// get source storage handler
+	sdb, err := storage.Cli.GetIndex(name, storage.DBEngineBadger)
+	if err != nil {
+		return nil, err
+	}
+	index.SourceStorage = sdb
 
 	return index, nil
 }

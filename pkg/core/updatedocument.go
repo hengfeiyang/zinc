@@ -2,8 +2,6 @@ package core
 
 import (
 	"encoding/json"
-
-	"github.com/prabhatsharma/zinc/pkg/storage"
 )
 
 // UpdateDocument inserts or updates a document in the zinc index
@@ -30,29 +28,17 @@ func (index *Index) UpdateDocument(docID string, doc map[string]interface{}, min
 }
 
 func (index *Index) SetSourceData(docID string, sourceDoc map[string]interface{}) error {
-	indexDB, err := storage.Cli.GetIndex(index.Name)
-	if err != nil {
-		return err
-	}
 	jdoc, err := json.Marshal(sourceDoc)
 	if err != nil {
 		return err
 	}
-	return indexDB.Set(docID, jdoc)
+	return index.SourceStorage.Set(docID, jdoc)
 }
 
 func (index *Index) GetSourceData(docID string) ([]byte, error) {
-	indexStorage, err := storage.Cli.GetIndex(index.Name)
-	if err != nil {
-		return nil, err
-	}
-	return indexStorage.Get(docID)
+	return index.SourceStorage.Get(docID)
 }
 
 func (index *Index) DeleteSourceData(docID string) error {
-	indexStorage, err := storage.Cli.GetIndex(index.Name)
-	if err != nil {
-		return err
-	}
-	return indexStorage.Delete(docID)
+	return index.SourceStorage.Delete(docID)
 }

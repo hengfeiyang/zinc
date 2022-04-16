@@ -14,6 +14,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rs/zerolog/log"
 
+	"github.com/prabhatsharma/zinc/pkg/storage"
 	zincanalysis "github.com/prabhatsharma/zinc/pkg/uquery/v2/analysis"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
 )
@@ -91,8 +92,15 @@ func LoadZincIndexesFromMeta() (map[string]*Index, error) {
 		}
 		index.Writer, err = LoadIndexWriter(index.Name, index.StorageType, defaultSearchAnalyzer)
 		if err != nil {
-			log.Error().Msgf("Loading user   index... [%s:%s] error: %v", index.Name, index.StorageType, err)
+			log.Error().Msgf("Loading user   index... [%s:%s] index writer error: %v", index.Name, index.StorageType, err)
 		}
+
+		// get source storage handler
+		sdb, err := storage.Cli.GetIndex(index.Name, storage.DBEngineBadger)
+		if err != nil {
+			log.Error().Msgf("Loading user   index... [%s:%s] source storage error: %v", index.Name, index.StorageType, err)
+		}
+		index.SourceStorage = sdb
 
 		// load index docs count
 		index.DocsCount, _ = index.LoadDocsCount()

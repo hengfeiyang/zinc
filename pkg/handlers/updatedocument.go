@@ -13,8 +13,9 @@ func UpdateDocument(c *gin.Context) {
 	indexName := c.Param("target")
 	queryID := c.Param("id") // ID for the document to be updated provided in URL path
 
+	var err error
 	var doc map[string]interface{}
-	if err := c.BindJSON(&doc); err != nil {
+	if err = c.BindJSON(&doc); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -29,12 +30,7 @@ func UpdateDocument(c *gin.Context) {
 		docID = queryID
 	}
 	if docID == "" {
-		storage, err := storage.Cli.GetIndex(indexName)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		docID, err = storage.GenerateID()
+		docID, err = storage.Cli.GenerateID()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -42,7 +38,6 @@ func UpdateDocument(c *gin.Context) {
 		mintedID = true
 	}
 
-	var err error
 	// If the index does not exist, then create it
 	index, exists := core.GetIndex(indexName)
 	if !exists {
