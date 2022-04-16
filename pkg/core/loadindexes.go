@@ -48,7 +48,7 @@ func LoadZincIndexesFromMeta() (map[string]*Index, error) {
 
 	dmi, err := reader.Search(context.Background(), searchRequest)
 	if err != nil {
-		return nil, fmt.Errorf("core.LoadZincIndexesFromMeta: error executing search: %v", err)
+		return nil, fmt.Errorf("core.LoadZincIndexesFromMeta: error executing search: %s", err.Error())
 	}
 
 	indexList := make(map[string]*Index)
@@ -76,14 +76,14 @@ func LoadZincIndexesFromMeta() (map[string]*Index, error) {
 
 		log.Info().Msgf("Loading user   index... [%s:%s]", index.Name, index.StorageType)
 		if err != nil {
-			log.Printf("core.LoadZincIndexesFromMeta: error accessing stored fields: %v", err)
+			log.Printf("core.LoadZincIndexesFromMeta: error accessing stored fields: %s", err.Error())
 		}
 
 		// load index analysis
 		if index.Settings != nil && index.Settings.Analysis != nil {
 			index.CachedAnalyzers, err = zincanalysis.RequestAnalyzer(index.Settings.Analysis)
 			if err != nil {
-				log.Printf("core.LoadZincIndexesFromMeta: error parse stored analysis: %v", err)
+				log.Printf("core.LoadZincIndexesFromMeta: error parse stored analysis: %s", err.Error())
 			}
 		}
 
@@ -94,13 +94,13 @@ func LoadZincIndexesFromMeta() (map[string]*Index, error) {
 		}
 		index.Writer, err = LoadIndexWriter(index.Name, index.StorageType, defaultSearchAnalyzer)
 		if err != nil {
-			log.Error().Msgf("Loading user   index... [%s:%s] index writer error: %v", index.Name, index.StorageType, err)
+			log.Error().Msgf("Loading user   index... [%s:%s] index writer error: %s", index.Name, index.StorageType, err.Error())
 		}
 
 		// get source storage handler
 		sourceStorage, err := storage.Cli.GetIndex(index.Name, index.SourceStorageType)
 		if err != nil {
-			log.Error().Msgf("Loading user   index... [%s:%s] source storage error: %v", index.Name, index.StorageType, err)
+			log.Error().Msgf("Loading user   index... [%s:%s] source storage error: %s", index.Name, index.StorageType, err.Error())
 		}
 		index.SourceStorager = sourceStorage
 

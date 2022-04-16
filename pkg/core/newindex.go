@@ -133,7 +133,7 @@ func StoreIndex(index *Index) error {
 
 	err := ZINC_SYSTEM_INDEX_LIST["_index"].Writer.Update(bdoc.ID(), bdoc)
 	if err != nil {
-		return fmt.Errorf("core.StoreIndex: index: %s, error: %v", index.Name, err)
+		return fmt.Errorf("core.StoreIndex: index: %s, error: %s", index.Name, err.Error())
 	}
 
 	// cache index
@@ -147,7 +147,7 @@ func DeleteIndex(name string) error {
 	bdoc.AddField(bluge.NewCompositeFieldExcluding("_all", nil))
 	err := ZINC_SYSTEM_INDEX_LIST["_index"].Writer.Delete(bdoc.ID())
 	if err != nil {
-		return fmt.Errorf("core.DeleteIndex: error deleting template: %v", err)
+		return fmt.Errorf("core.DeleteIndex: error deleting template: %s", err.Error())
 	}
 
 	return nil

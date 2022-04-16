@@ -55,7 +55,7 @@ func (t *Storage) GetIndex(indexName string, dbEngine string) (Storager, error) 
 		index, err = NewBadger(indexName)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("storage.GetIndex: create index err %v", err)
+		return nil, fmt.Errorf("storage.GetIndex: create index err %s", err.Error())
 	}
 
 	t.lock.Lock()

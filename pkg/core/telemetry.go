@@ -58,7 +58,7 @@ func (t *telemetry) getInstanceID() string {
 	reader, _ := ZINC_SYSTEM_INDEX_LIST["_metadata"].Writer.Reader()
 	dmi, err := reader.Search(context.Background(), searchRequest)
 	if err != nil {
-		log.Printf("core.Telemetry.GetInstanceID: error executing search: %v", err)
+		log.Printf("core.Telemetry.GetInstanceID: error executing search: %s", err.Error())
 	}
 
 	next, err := dmi.Next()
@@ -70,7 +70,7 @@ func (t *telemetry) getInstanceID() string {
 			return true
 		})
 		if err != nil {
-			log.Printf("core.Telemetry.GetInstanceID: error accessing stored fields: %v", err)
+			log.Printf("core.Telemetry.GetInstanceID: error accessing stored fields: %s", err.Error())
 		}
 	}
 

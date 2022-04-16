@@ -52,7 +52,7 @@ func CreateUser(userID, name, plaintextPassword, role string) (*ZincUser, error)
 	usersIndexWriter := core.ZINC_SYSTEM_INDEX_LIST["_users"].Writer
 	err = usersIndexWriter.Update(bdoc.ID(), bdoc)
 	if err != nil {
-		log.Printf("error updating document: %v", err)
+		log.Printf("error updating document: %s", err.Error())
 		return nil, err
 	}
 

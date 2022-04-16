@@ -23,7 +23,7 @@ type badgerStorageBulk struct {
 func NewBadger(indexName string) (Storager, error) {
 	db, err := openBadgerDB(indexName)
 	if err != nil {
-		return nil, fmt.Errorf("open badger db err %v", err.Error())
+		return nil, fmt.Errorf("open badger db err %s", err.Error())
 	}
 	return &badgerStorage{db: db}, nil
 }
@@ -46,7 +46,7 @@ func (t *badgerStorage) Set(key string, value []byte) error {
 		return txn.Set([]byte(key), value)
 	})
 	if err != nil {
-		return fmt.Errorf("storage.badger.Set: key[%s] err %v", key, err.Error())
+		return fmt.Errorf("storage.badger.Set: key[%s] err %s", key, err.Error())
 	}
 	return nil
 }
@@ -62,7 +62,7 @@ func (t *badgerStorage) Get(key string) ([]byte, error) {
 		return err
 	})
 	if err != nil {
-		return nil, fmt.Errorf("storage.badger.Get: key[%s] err %v", key, err.Error())
+		return nil, fmt.Errorf("storage.badger.Get: key[%s] err %s", key, err.Error())
 	}
 	return valCopy, nil
 }
@@ -84,7 +84,7 @@ func (t *badgerStorage) Gets(keys []string) (map[string][]byte, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("storage.badger.Gets: err %v", err.Error())
+		return nil, fmt.Errorf("storage.badger.Gets: err %s", err.Error())
 	}
 	return result, nil
 }
@@ -94,7 +94,7 @@ func (t *badgerStorage) Delete(key string) error {
 		return txn.Delete([]byte(key))
 	})
 	if err != nil {
-		return fmt.Errorf("storage.badger.Delete: key[%s] err %v", key, err.Error())
+		return fmt.Errorf("storage.badger.Delete: key[%s] err %s", key, err.Error())
 	}
 	return nil
 }
@@ -114,26 +114,26 @@ func (t *badgerStorageBulk) Set(key string, value []byte) error {
 	}
 	if err == badger.ErrTxnTooBig {
 		if err = t.txn.Commit(); err != nil {
-			return fmt.Errorf("storage.badger.bulk.Set: transaction.Commit err %v", err.Error())
+			return fmt.Errorf("storage.badger.bulk.Set: transaction.Commit err %s", err.Error())
 		}
 		t.txn = t.index.db.NewTransaction(true)
 		if err := t.txn.Set([]byte(key), value); err != nil {
-			return fmt.Errorf("storage.badger.bulk.Set: key[%s] err %v", key, err.Error())
+			return fmt.Errorf("storage.badger.bulk.Set: key[%s] err %s", key, err.Error())
 		}
 	}
-	return fmt.Errorf("storage.badger.bulk.Set: key[%s] err %v", key, err.Error())
+	return fmt.Errorf("storage.badger.bulk.Set: key[%s] err %s", key, err.Error())
 }
 
 func (t *badgerStorageBulk) Delete(key string) error {
 	if err := t.txn.Delete([]byte(key)); err != nil {
-		return fmt.Errorf("storage.badger.bulk.Delete: key[%s] err %v", key, err.Error())
+		return fmt.Errorf("storage.badger.bulk.Delete: key[%s] err %s", key, err.Error())
 	}
 	return nil
 }
 
 func (t *badgerStorageBulk) Commit() error {
 	if err := t.txn.Commit(); err != nil {
-		return fmt.Errorf("storage.badger.bulk.Commit: err %v", err.Error())
+		return fmt.Errorf("storage.badger.bulk.Commit: err %s", err.Error())
 	}
 	return nil
 }
