@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 
+	"github.com/prabhatsharma/zinc/pkg/core"
 	"github.com/prabhatsharma/zinc/pkg/routes"
 	"github.com/prabhatsharma/zinc/pkg/storage"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
@@ -32,6 +33,7 @@ func main() {
 	}
 
 	shutdown(func(grace bool) {
+		core.CloseIndexes() // close all indexes
 		storage.Cli.Close() // close storage db
 		log.Info().Msgf("Storage db closed")
 		if grace {

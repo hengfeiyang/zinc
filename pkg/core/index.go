@@ -352,3 +352,7 @@ func (index *Index) GainDocsCount(n int64) {
 	atomic.AddInt64(&index.DocsCount, n)
 	index.ReLoadStorageSize()
 }
+
+func (index *Index) Close() error {
+	return index.Writer.Close()
+}

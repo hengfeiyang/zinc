@@ -248,3 +248,12 @@ func LoadZincIndexesFromMinIO() (map[string]*Index, error) {
 
 	return IndexList, nil
 }
+
+func CloseIndexes() {
+	for _, index := range ZINC_INDEX_LIST {
+		_ = index.Close()
+	}
+	for _, index := range ZINC_SYSTEM_INDEX_LIST {
+		_ = index.Close()
+	}
+}

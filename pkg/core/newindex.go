@@ -37,7 +37,7 @@ func NewIndex(name, storageType string, useNewIndexMeta int, defaultSearchAnalyz
 	default:
 		storageType = "disk"
 		dataPath = zutils.GetEnv("ZINC_DATA_PATH", "./data")
-		config = bluge.DefaultConfig(dataPath + "/" + name)
+		config = directory.GetBadgerConfig(dataPath, name)
 	}
 
 	if defaultSearchAnalyzer != nil {
@@ -94,7 +94,7 @@ func LoadIndexWriter(name string, storageType string, defaultSearchAnalyzer *ana
 		config = directory.GetMinIOConfig(dataPath, name)
 	default:
 		dataPath = zutils.GetEnv("ZINC_DATA_PATH", "./data")
-		config = bluge.DefaultConfig(dataPath + "/" + name)
+		config = directory.GetBadgerConfig(dataPath, name)
 	}
 
 	if defaultSearchAnalyzer != nil {

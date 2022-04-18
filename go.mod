@@ -34,3 +34,5 @@ require (
 	golang.org/x/text v0.3.6
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 )
+
+replace github.com/blugelabs/bluge v0.1.9 => "../../blugelabs/bluge"
