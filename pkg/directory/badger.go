@@ -39,7 +39,7 @@ func openBadgerDB(rootPath, prefix string, readOnly bool) (*badger.DB, error) {
 	opt.ZSTDCompressionLevel = 3
 	opt.BlockSize = 1024 * 128
 	opt.MetricsEnabled = false
-	opt.Logger = nil
+	// opt.Logger = nil
 	opt.ReadOnly = readOnly
 	return badger.Open(opt)
 }
@@ -55,7 +55,11 @@ func NewBadgerDirectory(rootPath, indexName string) index.Directory {
 func (s *BadgerDirectory) Setup(readOnly bool) error {
 	var err error
 	s.Client, err = openBadgerDB(s.RootPath, s.IndexName, readOnly)
-	return err
+	if err != nil {
+		return fmt.Errorf("BadgerDirectory.Setup: %v", err)
+	}
+	_badgerOpenedDirectory = append(_badgerOpenedDirectory, s.Client)
+	return nil
 }
 
 func (s *BadgerDirectory) fileName(kind string, id uint64) string {
@@ -189,4 +193,14 @@ func (s *BadgerDirectory) Unlock() error {
 // disk. Calling DB.Close() multiple times would still only close the DB once.
 func (s *BadgerDirectory) Close() error {
 	return s.Client.Close()
+}
+
+var _badgerOpenedDirectory = []*badger.DB{}
+
+func BadgerDirectoryClose() {
+	for _, db := range _badgerOpenedDirectory {
+		if db != nil {
+			_ = db.Close()
+		}
+	}
 }

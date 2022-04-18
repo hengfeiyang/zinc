@@ -45,7 +45,7 @@ func DeleteIndex(c *gin.Context) {
 			return
 		}
 		storage.Cli.DeleteIndex(index.Name)
-		err = os.RemoveAll(dataPath + "/storage/" + index.Name)
+		err = os.RemoveAll(dataPath + "/_storage/" + index.Name)
 		if err != nil {
 			log.Error().Msgf("failed to delete storage index: %s", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

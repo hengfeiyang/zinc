@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/prabhatsharma/zinc/pkg/core"
+	"github.com/prabhatsharma/zinc/pkg/directory"
 	"github.com/prabhatsharma/zinc/pkg/routes"
 	"github.com/prabhatsharma/zinc/pkg/storage"
 	"github.com/prabhatsharma/zinc/pkg/zutils"
@@ -33,8 +34,9 @@ func main() {
 	}
 
 	shutdown(func(grace bool) {
-		core.CloseIndexes() // close all indexes
-		storage.Cli.Close() // close storage db
+		core.CloseIndexes()              // close all indexes
+		directory.BadgerDirectoryClose() // close all badger directories
+		storage.Cli.Close()              // close storage db
 		log.Info().Msgf("Storage db closed")
 		if grace {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
