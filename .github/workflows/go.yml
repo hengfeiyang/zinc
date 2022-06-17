@@ -2,27 +2,48 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
-  build:
+  build_web:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - name: Build
+        run: |
+          cd web/
+          npm install
+          npm run build
+      - name: Cache
+        uses: actions/cache@v3.0.4
+        with:
+          path: web/dist
+          key: web-dist
+  build_go:
+    needs: [build_web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.18
+      - name: Cache
+        uses: actions/cache@v3.0.4
+        with:
+          path: web/dist
+          key: web-dist
 
-    - name: Build
-      run: CGO_ENABLED=0 go build -o zinc cmd/zinc/main.go
+      - name: Build
+        run: CGO_ENABLED=0 go build -o zinc cmd/zinc/main.go
 
-    - name: Test
-      run: ./coverage.sh
+      - name: Test
+        run: ./coverage.sh
 
-    - name: Codecov
-      uses: codecov/codecov-action@v3.1.0
+      - name: Codecov
+        uses: codecov/codecov-action@v3.1.0
