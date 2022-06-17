@@ -14,12 +14,16 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
-          cache: "./web/dist"
       - name: Build
         working-directory: ./web
         run: |
           npm install
           npm run build
+      - name: Cache
+        uses: actions/cache@v3.0.4
+        with:
+          path: ./web/dist/
+          key: web-dist
   build_go:
     needs: [build_web]
     runs-on: ubuntu-latest
